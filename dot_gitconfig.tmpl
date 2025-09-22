@@ -1,0 +1,92 @@
+[user]
+	name = {{ .git.name }}
+	email = {{ .git.email }}
+
+[diff]
+  algorithm = histogram
+[color]
+  ui = auto
+[alias]
+  aa = add --all
+  ap = add -p
+  b  = branch
+  browse = !hub browse
+  ca = commit --amend
+  car = commit --amend --no-edit
+  ci = commit
+  cm = commit -m
+  co = checkout
+  ctags = !.git/hooks/ctags
+  di = diff
+  dc = diff --word-diff --cached --color-words
+  df = diff --word-diff --color-words
+  dh1 = diff HEAD~1
+  ds = diff --stat=160,120
+
+  fa = fetch --all
+  ff = merge --ff-only
+  noff = merge --no-ff
+
+  glog = log -E -i --grep
+  gn = goodness
+  gnc = goodness --cached
+
+  lo = log --oneline -10 
+
+  master = checkout master
+  staging = checkout staging
+
+  mup = !git checkout master && git pull && git checkout -
+
+  r = !GIT_NO_PAGER=1 git l -30
+  l = "!. ~/.githelpers && pretty_git_log"
+  la = !git l --all
+  pl = pull
+  plr = pull --rebase
+  pom = push -u origin master
+  ps = push
+  rbc = rebase --continue
+  ri = rebase --interactive
+
+  sl = log --oneline --decorate --graph -20
+  sl = log --oneline --decorate --graph --all
+	sla = log --oneline --decorate --graph --all
+  st = status
+
+	unstage = reset
+	uncommit = reset --soft HEAD^
+	stable = checkout stable
+
+[merge]
+	tool = vimdiff
+  ff = only # fast forward only. Never create a commit only for merging. Force to Rebase first.
+  conflictstyle = zdiff3
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+  required = true
+	process = git-lfs filter-process
+[gitsh]
+  noGreeting = true
+  defaultCommand = status --short --branch
+[gitsh "color"]
+  default = cyan
+  untracked = yellow
+  modified = red
+[push]
+	default = upstream # push only the current local branch if upstream branch exist. if not do nothing.
+	autoSetupRemote = true
+[init]
+	templatedir = ~/.git_template
+[fetch]
+  prune = true # compare local refs with the remote ref compare local refs with the remote refes 
+[core]
+  ; editor = /Applications/MacVim.app/Contents/MacOS/Vim
+  editor = /usr/local/bin/nvim
+  excludefile = ~/.gitignore
+	excludesFile = ~/.gitignore
+[status]
+	short = true
+[rerere]
+	enabled = 1
+	autoupdate = true
