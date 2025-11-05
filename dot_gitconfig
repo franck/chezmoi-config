@@ -1,6 +1,6 @@
 [user]
-	name = {{ .git.name }}
-	email = {{ .git.email }}
+	name = Franck D'agostini
+	email = franck.dagostini@gmail.com
 
 [diff]
   algorithm = histogram
