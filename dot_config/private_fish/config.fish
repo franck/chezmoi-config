@@ -12,6 +12,7 @@ end
 fish_add_path /home/franck/.opencode/bin
 fish_add_path /home/franck/.pulumi/bin
 fish_add_path /home/franck/bin
+fish_add_path ./bin
 
 mise activate fish | source
 

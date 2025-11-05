@@ -57,6 +57,8 @@ term = xterm-256color
 
 # Keybindings
 keybind = f11=toggle_fullscreen
+keybind = shift+insert=paste_from_clipboard
+keybind = control+insert=copy_to_clipboard
 
 # Color scheme from omarchy theme
 background = 1a1b26
@@ -84,3 +86,10 @@ palette = 15=#acb0d0
 
 # Selection color
 selection-background = 7aa2f7
+
+clipboard-read = allow
+clipboard-paste-bracketed-safe = false
+
+
+
+

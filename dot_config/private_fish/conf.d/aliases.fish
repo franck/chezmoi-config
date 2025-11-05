@@ -36,6 +36,7 @@ alias kvisit="cd ~/webdesign/egide/kolimmo-visit"
 alias kweb="cd ~/webdesign/egide/kolimmo-web"
 alias aircall="cd ~/webdesign/aircall/web"
 alias holivia="cd ~/webdesign/holivia/holivia_web"
+alias missio="cd ~/webdesign/missio/missio/main"
 alias holt="holivia && t"
 alias hstats="cd ~/webdesign/holivia/holivia_stats"
 alias mgme="cd ~/webdesign/mgme/mgme"
@@ -88,4 +89,19 @@ alias glo="git log --online -10"
 
 alias vlc='/Applications/VLC.app/Contents/MacOS/VLC'
 alias love="/Applications/love.app/Contents/MacOS/love"
-alias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
+
+# Worktree management
+alias wt='bin/worktree-setup'           # Main worktree command
+alias wtadd='bin/worktree-setup add'    # Create worktree
+alias wtrm='bin/worktree-setup remove'  # Remove worktree
+alias wtls='bin/worktree-setup list'    # List worktrees
+
+# Session switching
+alias wtsw='bin/worktree-switch'        # Switch to worktree session
+alias wtswls='bin/worktree-switch list' # List sessions
+
+# Status
+alias wtst='bin/worktree-status'        # Show status of all worktrees
+
+# Quick combinations
+alias wtn='bin/worktree-setup add -b'   # Create new branch + worktreelias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
