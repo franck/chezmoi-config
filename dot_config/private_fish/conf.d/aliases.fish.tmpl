@@ -53,11 +53,6 @@ alias meteo="curl -H 'Accept-Language: fr' wttr.in"
 alias r="rails"
 alias h="heroku"
 
-alias blender-clean="$HOME/bin/run-blender-clean"
-
-alias ack="/usr/local/Cellar/ack/2.14/bin/ack"
-
-alias vim="/Applications/MacVim.app/Contents/MacOS/Vim"
 alias vi="nvim"
 alias nv="NVIM_APPNAME=editorconfig nvim"
 
@@ -106,3 +101,12 @@ alias wtst='bin/worktree-status'        # Show status of all worktrees
 
 # Quick combinations
 alias wtn='bin/worktree-setup add -b'   # Create new branch + worktreelias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
+
+
+{{- if eq .chezmoi.os "darwin" }}
+# mac specific
+alias vlc='/Applications/VLC.app/Contents/MacOS/VLC'
+alias love="/Applications/love.app/Contents/MacOS/love"
+alias blender-clean="$HOME/bin/run-blender-clean"
+alias ack="/usr/local/Cellar/ack/2.14/bin/ack"
+{{- end }}
