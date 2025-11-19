@@ -61,7 +61,7 @@
 [merge]
 	tool = vimdiff
   ff = only # fast forward only. Never create a commit only for merging. Force to Rebase first.
-	conflictstyle = diff3
+	conflictstyle = zdiff3
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -98,3 +98,9 @@
 	navigate = true
 	side-by-side = true
 	line-numbers = true
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
