@@ -4,6 +4,7 @@
 
 [diff]
   algorithm = histogram
+	colorMoved = default
 [color]
   ui = auto
 [alias]
@@ -60,7 +61,7 @@
 [merge]
 	tool = vimdiff
   ff = only # fast forward only. Never create a commit only for merging. Force to Rebase first.
-  conflictstyle = zdiff3
+	conflictstyle = diff3
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
@@ -85,8 +86,15 @@
   editor = /usr/local/bin/nvim
   excludefile = ~/.gitignore
 	excludesFile = ~/.gitignore
+	pager = delta
 [status]
 	short = true
 [rerere]
 	enabled = 1
 	autoupdate = true
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	side-by-side = true
+	line-numbers = true
