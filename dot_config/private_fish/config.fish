@@ -8,18 +8,24 @@ if status is-interactive
     # Commands to run in interactive sessions can go here
 end
 
-# opencode
+fish_add_path ./bin
+
+{{- if eq .chezmoi.os "darwin" }}
+
+# mac
+fish_add_path /Users/franck/.opencode/bin
+fish_add_path /Users/franck/bin
+
+{{- else if eq .chezmoi.os "linux" }}
+
+# linux
 fish_add_path /home/franck/.opencode/bin
 fish_add_path /home/franck/.pulumi/bin
 fish_add_path /home/franck/bin
-fish_add_path ./bin
 
-# mac
-fish_add_path /Users/franck/.local/share/opencode/bin
-fish_add_path /Users/franck/bin
+eval (~/.local/try.rb init ~/src/tries | string collect)
+
+{{- end}}
 
 
-/Users/franck/.local/bin/mise activate fish | source
-
-# opencode
-fish_add_path /Users/franck/.opencode/bin
+mise activate fish | source
