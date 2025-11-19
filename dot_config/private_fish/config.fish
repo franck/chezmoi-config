@@ -14,5 +14,12 @@ fish_add_path /home/franck/.pulumi/bin
 fish_add_path /home/franck/bin
 fish_add_path ./bin
 
-mise activate fish | source
+# mac
+fish_add_path /Users/franck/.local/share/opencode/bin
+fish_add_path /Users/franck/bin
 
+
+/Users/franck/.local/bin/mise activate fish | source
+
+# opencode
+fish_add_path /Users/franck/.opencode/bin
