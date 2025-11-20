@@ -90,6 +90,7 @@ selection-background = 7aa2f7
 clipboard-read = allow
 clipboard-paste-bracketed-safe = false
 
-
+clipboard-paste-protection = false
+window-decoration = auto
 
 
