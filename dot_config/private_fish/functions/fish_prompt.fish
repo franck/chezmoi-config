@@ -2,26 +2,34 @@ function fish_prompt
   set -l last_status $status
   set -l cyan (set_color -o cyan)
   set -l yellow (set_color -o yellow)
-  set -g red (set_color -o red)
-  set -g blue (set_color -o blue)
+  set -l red (set_color -o red)
+  set -l blue (set_color -o blue)
   set -l green (set_color -o green)
-  set -g normal (set_color normal)
+  set -l normal (set_color normal)
 
   set -l ahead (_git_ahead)
-  set -g whitespace ' '
+  set -l whitespace ' '
 
   if test -f Pulumi.yaml
-    # Fetch the current Pulumi stack
-    set -l pulumi_stack (pulumi stack --show-name 2>/dev/null)
+    # Cache Pulumi stack - invalidate when directory or Pulumi.yaml changes
+    set -l cache_key (pwd):(stat -c %Y Pulumi.yaml 2>/dev/null || stat -f %m Pulumi.yaml 2>/dev/null)
 
-    if test -n "$pulumi_stack"
+    if test "$_pulumi_cache_key" != "$cache_key"
+      set -g _pulumi_cache_key $cache_key
+      set -g _pulumi_cache_stack (pulumi stack --show-name 2>/dev/null)
+    end
 
-      if string match -q "*prod*" "$pulumi_stack"
-        set pulumi_info "$normal p:[$red$pulumi_stack$normal]"
+    if test -n "$_pulumi_cache_stack"
+      if string match -q "*prod*" "$_pulumi_cache_stack"
+        set pulumi_info "$normal p:[$red$_pulumi_cache_stack$normal]"
       else
-        set pulumi_info "$normal p:[$green$pulumi_stack$normal]"
+        set pulumi_info "$normal p:[$green$_pulumi_cache_stack$normal]"
       end
     end
+  else
+    # Clear cache when leaving Pulumi directory
+    set -e _pulumi_cache_key
+    set -e _pulumi_cache_stack
   end
 
   if test $last_status = 0
@@ -35,11 +43,10 @@ function fish_prompt
 
   if [ (_git_branch_name) ]
 
-    if test (_git_branch_name) = 'master'
-      set -l git_branch (_git_branch_name)
+    set -l git_branch (_git_branch_name)
+    if contains $git_branch master main
       set git_info "$normal g:($red$git_branch$normal)"
     else
-      set -l git_branch (_git_branch_name)
       set git_info "$normal g:($blue$git_branch$normal)"
     end
 

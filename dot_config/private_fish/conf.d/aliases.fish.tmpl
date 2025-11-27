@@ -69,7 +69,7 @@ alias es8="$HOME/sandbox/src/es8/bin/elasticsearch -d"
 alias logstash="$HOME/sandbox/src/logstash/bin/logstash"
 alias filebeat="$HOME/sandbox/src/filebeat/filebeat"
 
-alias ls="exa -al --color=always --group-directories-first"
+alias ls="eza -al --color=always --group-directories-first"
 
 # alias tmux="TERM=xterm-256color tmux"
 # alias t="./.tmux"
@@ -82,9 +82,7 @@ alias rmi="rake db:migrate"
 
 alias g="git"
 alias gwip="gitupdate ."
-alias glo="git log --online -10"
-
-alias vlc='/Applications/VLC.app/Contents/MacOS/VLC'
+alias glo="git log --oneline -10"
 
 # Worktree management
 alias wt='bin/worktree-setup'           # Main worktree command
@@ -100,7 +98,8 @@ alias wtswls='bin/worktree-switch list' # List sessions
 alias wtst='bin/worktree-status'        # Show status of all worktrees
 
 # Quick combinations
-alias wtn='bin/worktree-setup add -b'   # Create new branch + worktreelias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
+alias wtn='bin/worktree-setup add -b'   # Create new branch + worktree
+alias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
 
 
 {{- if eq .chezmoi.os "darwin" }}
