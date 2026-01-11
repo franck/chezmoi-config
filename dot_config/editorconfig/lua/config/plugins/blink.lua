@@ -16,7 +16,6 @@ return {
           loader.load { paths = paths }
         end
       },
-      "giuxtaposition/blink-cmp-copilot",
     },
     version = '*',
     opts = {
@@ -44,9 +43,8 @@ return {
         -- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
         -- Adjusts spacing to ensure icons are aligned
         nerd_font_variant = 'mono',
-        -- Blink does not expose its default kind icons so you must copy them all (or set your custom ones) and add Copilot
+        -- Blink does not expose its default kind icons so you must copy them all (or set your custom ones) 
         kind_icons = {
-          Copilot = "Co",
           Text = '󰉿',
           Method = '󰊕',
           Function = '󰊕',
@@ -87,24 +85,8 @@ return {
       -- Default list of enabled providers defined so that you can extend it
       -- elsewhere in your config, without redefining it, due to `opts_extend`
       sources = {
-        default = { 'copilot', 'lsp', 'snippets', 'buffer' },
+        default = { 'lsp', 'snippets', 'buffer' },
         providers = {
-          copilot = {
-            name = 'copilot',
-            enabled = true,
-            module = "blink-cmp-copilot",
-            score_offset = 200,
-            async = true,
-            transform_items = function(_, items)
-              local CompletionItemKind = require("blink.cmp.types").CompletionItemKind
-              local kind_idx = #CompletionItemKind + 1
-              CompletionItemKind[kind_idx] = "Copilot"
-              for _, item in ipairs(items) do
-                item.kind = kind_idx
-              end
-              return items
-            end,
-          },
           buffer = {
             name = "buffer",
             enabled = true,
