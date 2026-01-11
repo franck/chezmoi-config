@@ -17,8 +17,8 @@ Here is the remote tracking status:
 Here are the commits on this branch not yet merged:
 !`git log $(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")..HEAD --oneline 2>/dev/null || echo "Could not determine commits"`
 
-Here is the diff from the base branch:
-!`git diff $(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")...HEAD 2>/dev/null || echo "Could not determine diff"`
+Here is the diff stat from the base branch:
+!`git diff --stat $(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")...HEAD 2>/dev/null || echo "Could not determine diff"`
 
 Analyze these changes and create a pull request with:
 1. A clear, descriptive title
