@@ -1,6 +1,5 @@
 ---
 description: Create meaningful commits for current branch modifications
-model: anthropic/claude-haiku-4-5
 ---
 
 Create meaningful commits for the current branch modifications.
