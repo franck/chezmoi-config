@@ -10,7 +10,9 @@ set -g fish_greeting
 fish_add_path /Users/franck/.opencode/bin
 fish_add_path /Users/franck/bin
 
-/Users/franck/.local/bin/mise activate fish | source
+if status is-interactive
+    /Users/franck/.local/bin/mise activate fish | source
+end
 {{- else if eq .chezmoi.os "linux" }}
 
 # linux
@@ -18,9 +20,17 @@ fish_add_path /home/franck/.opencode/bin
 fish_add_path /home/franck/.pulumi/bin
 fish_add_path /home/franck/bin
 
-~/.local/try.rb init ~/src/tries | source
+if status is-interactive
+    ~/.local/try.rb init ~/src/tries | source
 
-mise activate fish | source
+    mise activate fish | source
+
+    # SSH agent
+    if test -z "$SSH_AUTH_SOCK"
+        eval (ssh-agent -c) > /dev/null
+        ssh-add ~/.ssh/id_ed25519 2>/dev/null
+    end
+end
 {{- end}}
 
 
