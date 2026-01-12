@@ -21,7 +21,7 @@ alias dhc-server='docker run --rm -it -v .:/rails -v ruby-bundle-cache:/bundle -
 alias fradeo="cd ~/webdesign/fradeo_web/fradeo"
 alias jobday="cd ~/webdesign/jobday"
 alias daphni="cd ~/webdesign/daphni/daphni"
-alias blog="cd ~/webdesign/blog/blog"
+alias blog="cd ~/Documents/pkm/blog && mise exec hugo -- hugo server"
 alias configurator="cd ~/webdesign/configurator_web/configurator"
 alias sumpps="cd ~/webdesign/sumpps_web/sumpps"
 alias rpoc-bridge="cd ~/webdesign/egide/rpoc-bridge"
@@ -36,6 +36,7 @@ alias kvisit="cd ~/webdesign/egide/kolimmo-visit"
 alias kweb="cd ~/webdesign/egide/kolimmo-web"
 alias aircall="cd ~/webdesign/aircall/web"
 alias holivia="cd ~/webdesign/holivia/holivia_web"
+alias pkm="cd ~/Documents/pkm"
 alias missio="cd ~/webdesign/missio/missio/main"
 alias holt="holivia && t"
 alias hstats="cd ~/webdesign/holivia/holivia_stats"
@@ -100,12 +101,3 @@ alias wtst='bin/worktree-status'        # Show status of all worktrees
 # Quick combinations
 alias wtn='bin/worktree-setup add -b'   # Create new branch + worktree
 alias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
-
-
-{{- if eq .chezmoi.os "darwin" }}
-# mac specific
-alias vlc='/Applications/VLC.app/Contents/MacOS/VLC'
-alias love="/Applications/love.app/Contents/MacOS/love"
-alias blender-clean="$HOME/bin/run-blender-clean"
-alias ack="/usr/local/Cellar/ack/2.14/bin/ack"
-{{- end }}
