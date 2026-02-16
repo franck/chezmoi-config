@@ -8,6 +8,7 @@
   "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screenrecording-indicator"],
   "modules-right": [
     "group/tray-expander",
+    "hyprland/language",
     "bluetooth",
     "network",
     "pulseaudio",
@@ -105,6 +106,11 @@
     "format-no-controller": "",
     "tooltip-format": "Devices connected: {num_connections}",
     "on-click": "omarchy-launch-bluetooth"
+  },
+  "hyprland/language": {
+    "format": "{long}",
+    "on-click": "hyprctl switchxkblayout all next",
+    "tooltip": false
   },
   "pulseaudio": {
     "format": "{icon}",
