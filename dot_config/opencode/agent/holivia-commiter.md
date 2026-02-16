@@ -1,7 +1,6 @@
 ---
 description: Creates commits and pull requests following project guidelines with automatic reviewer assignment
 mode: subagent
-model: anthropic/claude-sonnet-4-20250514
 temperature: 0.1
 tools:
   write: false
