@@ -10,7 +10,7 @@ function fish_prompt
   set -l ahead (_git_ahead)
   set -l whitespace ' '
 
-  if test -f Pulumi.yaml
+  if test -f Pulumi.yaml; and test -x "$HOME/.pulumi/bin/pulumi"
     # Cache Pulumi stack - invalidate when directory or Pulumi.yaml changes
     set -l cache_key (pwd):(stat -c %Y Pulumi.yaml 2>/dev/null || stat -f %m Pulumi.yaml 2>/dev/null)
 
