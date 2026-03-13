@@ -35,7 +35,7 @@ alias kpdfapiclient="cd ~/webdesign/egide/k-pdf-api-client"
 alias kvisit="cd ~/webdesign/egide/kolimmo-visit"
 alias kweb="cd ~/webdesign/egide/kolimmo-web"
 alias aircall="cd ~/webdesign/aircall/web"
-alias holivia="cd ~/webdesign/holivia/holivia_web"
+alias hol="cd ~/webdesign/holivia/holivia_web"
 alias hwt1="cd ~/webdesign/holivia/holivia-wt1"
 alias hwt2="cd ~/webdesign/holivia/holivia-wt2"
 alias hwt3="cd ~/webdesign/holivia/holivia-wt3"
@@ -49,8 +49,7 @@ alias hdbt="cd ~/webdesign/holivia/dbt_holivia"
 alias hchat="cd ~/webdesign/holivia/holivia_chat"
 alias oneone="cd ~/webdesign/oneone"
 alias hooked="cd ~/webdesign/hooked/hooked"
-alias ho="holivia"
-alias ngrok-holivia="ngrok http --domain=ngrok.holivia.fr 3000"
+alias ngrok-holivia="ngrok http --url=ngrok.holivia.fr"
 
 alias meteo="curl -H 'Accept-Language: fr' wttr.in"
 
@@ -104,3 +103,5 @@ alias wtst='bin/worktree-status'        # Show status of all worktrees
 # Quick combinations
 alias wtn='bin/worktree-setup add -b'   # Create new branch + worktree
 alias pwg="pwgen -Bsncs 32 1 -r '\"\'\`' | head -c32;echo"
+
+alias dragon="SDL_VIDEODRIVER=x11 ./dragonruby"
