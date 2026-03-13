@@ -97,6 +97,8 @@ clipboard-paste-bracketed-safe = false
 clipboard-paste-protection = false
 window-decoration = auto
 
+# do not confirm on close
+confirm-close-surface = false
 
 
 # Slowdown mouse scrolling
