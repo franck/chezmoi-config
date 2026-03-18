@@ -26,6 +26,10 @@ export const NotificationPlugin = async ({ $ }) => {
     }
   }
 
+  const getSessionWorkspace = async () => {
+    return sessionWorkspace ?? (await getActiveWorkspace())
+  }
+
   return {
     event: async ({ event }) => {
       if (
@@ -36,15 +40,20 @@ export const NotificationPlugin = async ({ $ }) => {
       }
 
       if (event.type === "session.idle") {
-        const workspace = sessionWorkspace ?? (await getActiveWorkspace())
+        const workspace = await getSessionWorkspace()
         await sendWorkspaceNotification(`Session completed on workspace ${workspace}`, workspace)
         sessionWorkspace = null
       }
 
       if (event.type === "session.error") {
-        const workspace = sessionWorkspace ?? (await getActiveWorkspace())
+        const workspace = await getSessionWorkspace()
         await sendWorkspaceNotification(`Session error on workspace ${workspace}`, workspace)
         sessionWorkspace = null
+      }
+
+      if (event.type === "permission.asked") {
+        const workspace = await getSessionWorkspace()
+        await sendWorkspaceNotification(`Permission needed on workspace ${workspace}`, workspace)
       }
 
       if (event.type === "session.deleted") {
