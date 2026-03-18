@@ -2,6 +2,10 @@ set -x NVIM_APPNAME editorconfig
 set -x EDITOR nvim
 set -x AWS_REGION eu-west-3
 
+if test -d "$HOME/.pulumi/bin"
+    fish_add_path --global "$HOME/.pulumi/bin"
+end
+
 set -g fish_greeting
 
 {{- if eq .chezmoi.os "darwin" }}
@@ -16,10 +20,47 @@ end
 {{- else if eq .chezmoi.os "linux" }}
 
 # linux
-fish_add_path -p ./bin
+function __cwd_bin_prepend --on-event fish_prompt
+    set -l cwd_bin "$PWD/bin"
+
+    if test -d "$cwd_bin"
+        set -l home_regex (string escape --style=regex -- $HOME)
+        set -l new_path
+        for p in $PATH
+            if string match -q "$cwd_bin" -- $p
+                continue
+            end
+
+            if string match -q "$HOME/.opencode/bin" -- $p
+                set -a new_path $p
+                continue
+            end
+
+            if string match -q "$HOME/.pulumi/bin" -- $p
+                set -a new_path $p
+                continue
+            end
+
+            if string match -qr "^$home_regex/.local/share/mise/.*/bin\$" -- $p
+                set -a new_path $p
+                continue
+            end
+
+            if string match -qr "^$home_regex/.*/bin\$" -- $p
+                continue
+            end
+
+            set -a new_path $p
+        end
+
+        set -gx PATH $cwd_bin $new_path
+    end
+end
 
 if status is-interactive
-    ~/.local/try.rb init ~/src/tries | source
+    if test -x ~/.local/try.rb
+        ~/.local/try.rb init ~/src/tries | source
+    end
 
     mise activate fish | source
 
@@ -30,5 +71,4 @@ if status is-interactive
     end
 end
 {{- end}}
-
 
