@@ -68,7 +68,15 @@ return {
       vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
 
       -- Shortcuts
-      vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition)
+      vim.keymap.set('n', '<leader>gd', function()
+        local ok, rails_component_definition = pcall(require, 'config.rails_component_definition')
+
+        if ok and rails_component_definition.goto_definition() then
+          return
+        end
+
+        vim.lsp.buf.definition()
+      end)
       vim.keymap.set('n', 'gra', vim.lsp.buf.code_action)
       vim.keymap.set('n', 'grr', vim.lsp.buf.references)
       vim.keymap.set('n', 'gO', vim.lsp.buf.document_symbol)
