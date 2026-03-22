@@ -3,6 +3,7 @@ require("config.lazy")
 require("config.bepo")
 require("config.folding")
 require("config.promote_let")
+require("config.quickfix_rename")
 
 vim.keymap.set('n', "<leader>X", ":%lua<CR>")
 vim.keymap.set('n', "<leader>x", ":.lua<CR>")
