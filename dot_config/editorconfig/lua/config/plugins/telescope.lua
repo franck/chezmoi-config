@@ -10,11 +10,12 @@ return {
     config = function()
       require('telescope').setup {
         pickers = {
-          find_files = { 
+          find_files = {
             theme = "ivy",
+            previewer = false,
             layout_config = {
-              height = 50
-            }
+              height = 50,
+            },
           },
           buffers = { theme = "ivy" },
           help_tags = { theme = "ivy" },
@@ -24,8 +25,8 @@ return {
 
         },
         extensions = {
-          fzf = {}
-        }
+          fzf = {},
+        },
       }
 
       require('telescope').load_extension('fzf')
@@ -42,7 +43,7 @@ return {
       end)
       vim.keymap.set("n", "<leader>np", function()
         builtin.find_files {
-          cwd = vim.fs.joinpath(vim.fn.stdpath('data'), 'lazy')
+          cwd = vim.fs.joinpath(vim.fn.stdpath('data'), 'lazy'),
         }
       end)
       require("config.telescope.multigrep").setup()

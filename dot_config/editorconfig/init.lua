@@ -2,6 +2,7 @@ require("config.opt")
 require("config.lazy")
 require("config.bepo")
 require("config.folding")
+require("config.rails_partial_gf").setup()
 require("config.promote_let")
 require("config.quickfix_rename")
 

@@ -27,6 +27,11 @@ function __cwd_bin_refresh --on-variable PWD
             continue
         end
 
+        if string match -q -- "$HOME/.local/bin" $p
+            set -a new_path $p
+            continue
+        end
+
         if string match -qr "^$home_regex/.local/share/mise/.*/bin\$" -- $p
             set -a new_path $p
             continue

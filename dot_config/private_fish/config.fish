@@ -7,6 +7,10 @@ if test -d "$HOME/.pulumi/bin"
     fish_add_path --global "$HOME/.pulumi/bin"
 end
 
+if test -d "$HOME/bin"
+    fish_add_path --global "$HOME/bin"
+end
+
 set -l os (uname -s)
 
 if status is-interactive
