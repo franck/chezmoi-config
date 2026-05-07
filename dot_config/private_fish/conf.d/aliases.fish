@@ -13,6 +13,8 @@ alias hprod='ecs console -c prod -s worker'
 alias hstaging='ecs console -c staging -s worker'
 alias hfranck='ecs console -c franck -s worker'
 
+alias hd='hunk diff'
+
 alias rails-server='docker run --rm -it -v $PWD:/rails -v ruby-bundle-cache:/bundle -p 3000:3000 ghcr.io/rails/cli rails server'
 alias rails-console='docker run --rm -it -v $PWD:/rails -v ruby-bundle-cache:/bundle ghcr.io/rails/cli rails console'
 alias dhc='docker run --rm -it -v .:/rails -v ruby-bundle-cache:/bundle holivia-chat'
