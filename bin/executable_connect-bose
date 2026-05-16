@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+set -u
+
+DEVICE_MAC="08:DF:1F:48:6B:5F"
+DEVICE_NAME="Bose Mini SoundLink"
+SINK_PREFIX="bluez_output.08_DF_1F_48_6B_5F"
+
+actions=()
+
+log() {
+  printf '%s\n' "$*"
+}
+
+action() {
+  actions+=("$*")
+  log "- $*"
+}
+
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+require_commands() {
+  local missing=()
+
+  for cmd in bluetoothctl pactl systemctl; do
+    if ! have "$cmd"; then
+      missing+=("$cmd")
+    fi
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    log "Missing required command(s): ${missing[*]}"
+    exit 2
+  fi
+}
+
+notify() {
+  if have notify-send; then
+    notify-send "Bluetooth speaker" "$1" >/dev/null 2>&1 || true
+  fi
+}
+
+device_info() {
+  bluetoothctl info "$DEVICE_MAC" 2>/dev/null || true
+}
+
+info_has() {
+  local field="$1"
+  local value="$2"
+  device_info | grep -q "^[[:space:]]*$field: $value$"
+}
+
+known_device() {
+  bluetoothctl devices | grep -qi "^Device $DEVICE_MAC "
+}
+
+connected() {
+  info_has Connected yes
+}
+
+paired() {
+  info_has Paired yes
+}
+
+trusted() {
+  info_has Trusted yes
+}
+
+bose_sink() {
+  pactl list sinks short | awk -v prefix="$SINK_PREFIX" '$2 ~ "^" prefix { print $2; exit }'
+}
+
+ensure_bluetooth() {
+  if ! systemctl is-active --quiet bluetooth; then
+    action "bluetooth.service was inactive; starting it"
+    systemctl start bluetooth
+  fi
+
+  if ! bluetoothctl show | grep -q 'Powered: yes'; then
+    action "Bluetooth controller was off; powering it on"
+    bluetoothctl power on >/dev/null
+  fi
+}
+
+connect_device() {
+  bluetoothctl connect "$DEVICE_MAC" >/tmp/connect-bose.bluetoothctl 2>&1
+}
+
+scan_bredr() {
+  action "Running classic Bluetooth discovery for $DEVICE_NAME"
+  bluetoothctl --timeout 30 scan bredr >/tmp/connect-bose.scan 2>&1 || true
+}
+
+pair_trust_connect() {
+  if ! known_device; then
+    scan_bredr
+  fi
+
+  if ! known_device; then
+    log "Could not find $DEVICE_NAME ($DEVICE_MAC). Put it in pairing mode and retry."
+    return 1
+  fi
+
+  if ! paired; then
+    action "Pairing $DEVICE_NAME"
+    bluetoothctl pair "$DEVICE_MAC" || return 1
+  fi
+
+  if ! trusted; then
+    action "Trusting $DEVICE_NAME"
+    bluetoothctl trust "$DEVICE_MAC" >/dev/null || return 1
+  fi
+
+  if ! connected; then
+    action "Connecting $DEVICE_NAME"
+    if ! connect_device; then
+      action "Initial connect failed; scanning classic Bluetooth and retrying"
+      scan_bredr
+      connect_device || return 1
+    fi
+  fi
+}
+
+set_default_sink() {
+  local sink="$1"
+
+  action "Setting $DEVICE_NAME as the default audio sink"
+  pactl set-default-sink "$sink" || true
+
+  while read -r input _; do
+    [[ -n "$input" ]] || continue
+    pactl move-sink-input "$input" "$sink" >/dev/null 2>&1 || true
+  done < <(pactl list sink-inputs short 2>/dev/null)
+}
+
+main() {
+  log "Auditing Bluetooth speaker: $DEVICE_NAME"
+
+  require_commands
+  ensure_bluetooth
+
+  if connected; then
+    action "$DEVICE_NAME is already connected"
+  else
+    pair_trust_connect || {
+      notify "Could not connect $DEVICE_NAME"
+      exit 1
+    }
+  fi
+
+  local sink
+  sink="$(bose_sink)"
+
+  if [[ -z "$sink" ]]; then
+    action "Bluetooth is connected but no audio sink is visible; reconnecting speaker"
+    bluetoothctl disconnect "$DEVICE_MAC" >/dev/null 2>&1 || true
+    sleep 2
+    connect_device || true
+    sleep 2
+    sink="$(bose_sink)"
+  fi
+
+  if [[ -z "$sink" ]]; then
+    log "Connected, but PipeWire did not expose a Bose audio sink. Try restarting WirePlumber/PipeWire."
+    notify "$DEVICE_NAME connected, but no audio sink appeared"
+    exit 1
+  fi
+
+  set_default_sink "$sink"
+
+  log ""
+  log "Final state:"
+  log "- Paired: $(paired && printf yes || printf no)"
+  log "- Trusted: $(trusted && printf yes || printf no)"
+  log "- Connected: $(connected && printf yes || printf no)"
+  log "- Sink: $sink"
+  log ""
+  log "OK: $DEVICE_NAME is connected and selected for audio."
+  notify "$DEVICE_NAME is connected"
+}
+
+main "$@"
