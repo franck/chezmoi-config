@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+
+region="${AWS_REGION:-${AWS_DEFAULT_REGION:-eu-west-3}}"
+profile=""
+prefix=""
+details=0
+interval=15
+
+usage() {
+  cat <<'USAGE'
+Usage: hol-pipeline-status [options]
+
+Show status for all AWS CodePipeline pipelines in an AWS account/region.
+
+Options:
+  --details             Show stage/action details for each pipeline
+  --interval SECONDS    Refresh interval (default: 15)
+  --region REGION       AWS region (default: AWS_REGION, AWS_DEFAULT_REGION, eu-west-3)
+  --profile PROFILE     AWS profile
+  --prefix PREFIX       Only show pipelines with this name prefix
+  -h, --help            Show this help
+
+Examples:
+  hol-pipeline-status
+  hol-pipeline-status --details
+  hol-pipeline-status --interval 30
+  hol-pipeline-status --region eu-west-3 --profile production
+
+Press Esc or Ctrl-C to quit.
+USAGE
+}
+
+die() {
+  printf 'hol-pipeline-status: %s\n' "$1" >&2
+  exit 2
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --details)
+      details=1
+      shift
+      ;;
+    --interval)
+      [ "$#" -ge 2 ] || die "--interval requires a value"
+      interval="$2"
+      shift 2
+      ;;
+    --region)
+      [ "$#" -ge 2 ] || die "--region requires a value"
+      region="$2"
+      shift 2
+      ;;
+    --profile)
+      [ "$#" -ge 2 ] || die "--profile requires a value"
+      profile="$2"
+      shift 2
+      ;;
+    --prefix)
+      [ "$#" -ge 2 ] || die "--prefix requires a value"
+      prefix="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      die "unknown option: $1"
+      ;;
+  esac
+done
+
+case "$interval" in
+  ''|*[!0-9]*) die "--interval must be a positive integer" ;;
+esac
+
+[ "$interval" -gt 0 ] || die "--interval must be greater than 0"
+
+require_command aws
+require_command jq
+
+aws_args=(--region "$region")
+if [ -n "$profile" ]; then
+  aws_args+=(--profile "$profile")
+fi
+
+aws_json() {
+  aws "${aws_args[@]}" "$@" --output json
+}
+
+aws_text() {
+  aws "${aws_args[@]}" "$@" --output text
+}
+
+ensure_aws_login() {
+  local identity_error
+
+  if aws_text sts get-caller-identity >/dev/null 2>/tmp/hol-pipeline-status-auth.err; then
+    return 0
+  fi
+
+  identity_error="$(cat /tmp/hol-pipeline-status-auth.err)"
+  case "$identity_error" in
+    *SSO*|*sso*|*expired*|*Unauthorized*|*Forbidden*|*AccessDenied*|*InvalidClientTokenId*|*TokenRefreshRequired*)
+      printf 'AWS credentials are missing or expired. Starting AWS SSO login.\n\n'
+      if ! aws "${aws_args[@]}" sso login --use-device-code; then
+        printf 'AWS SSO login failed.\n' >&2
+        return 2
+      fi
+
+      if aws_text sts get-caller-identity >/dev/null 2>/tmp/hol-pipeline-status-auth.err; then
+        return 0
+      fi
+
+      printf 'AWS authentication still failed after SSO login.\n' >&2
+      cat /tmp/hol-pipeline-status-auth.err >&2
+      return 2
+      ;;
+    *)
+      printf 'AWS authentication failed.\n' >&2
+      cat /tmp/hol-pipeline-status-auth.err >&2
+      return 2
+      ;;
+  esac
+}
+
+format_time() {
+  local value="$1"
+
+  if [ -z "$value" ] || [ "$value" = "null" ]; then
+    printf '-'
+  else
+    date -d "$value" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || printf '%s' "$value"
+  fi
+}
+
+pipeline_summary() {
+  jq -r '
+    def actions: [.stageStates[]?.actionStates[]?];
+    def status_priority:
+      if any(actions[]?; .latestExecution.status == "Failed") then "Failed"
+      elif any(actions[]?; .latestExecution.status == "InProgress") then "InProgress"
+      elif any(actions[]?; .latestExecution.status == "Stopped") then "Stopped"
+      elif any(actions[]?; .latestExecution.status == "Abandoned") then "Abandoned"
+      elif any(actions[]?; .latestExecution.status == "Superseded") then "Superseded"
+      elif all(actions[]?; .latestExecution.status == "Succeeded") then "Succeeded"
+      else "Unknown"
+      end;
+    def active_stage:
+      first(.stageStates[]? as $stage | $stage.actionStates[]? | select(.latestExecution.status == "Failed" or .latestExecution.status == "InProgress") | $stage.stageName)
+      // (.stageStates[-1]?.stageName // "-");
+    def updated:
+      [actions[]?.latestExecution.lastStatusChange] | map(select(. != null)) | max // "";
+
+    [status_priority, active_stage, updated] | @tsv
+  '
+}
+
+print_details() {
+  jq -r '
+    .stageStates[]? as $stage |
+    $stage.actionStates[]? |
+    [
+      $stage.stageName,
+      .actionName,
+      (.latestExecution.status // "Unknown"),
+      (.latestExecution.lastStatusChange // ""),
+      (.latestExecution.errorDetails.message // "")
+    ] | @tsv
+  '
+}
+
+run_once() {
+  local list_json pipeline_names failed_count pipeline_name state_json summary status stage updated updated_display
+
+  if ! list_json="$(aws_json codepipeline list-pipelines 2>/tmp/hol-pipeline-status.err)"; then
+    printf 'Failed to list pipelines.\n' >&2
+    cat /tmp/hol-pipeline-status.err >&2
+    return 2
+  fi
+
+  if [ -n "$prefix" ]; then
+    pipeline_names="$(printf '%s' "$list_json" | jq -r --arg prefix "$prefix" '.pipelines[]?.name | select(startswith($prefix))')"
+  else
+    pipeline_names="$(printf '%s' "$list_json" | jq -r '.pipelines[]?.name')"
+  fi
+
+  printf 'CodePipeline status in %s' "$region"
+  if [ -n "$profile" ]; then
+    printf ' using profile %s' "$profile"
+  fi
+  printf '\n\n'
+
+  if [ -z "$pipeline_names" ]; then
+    printf 'No pipelines found.\n'
+    return 0
+  fi
+
+  printf '%-44s %-12s %-18s %s\n' 'PIPELINE' 'STATUS' 'STAGE' 'UPDATED'
+  printf '%-44s %-12s %-18s %s\n' '--------' '------' '-----' '-------'
+
+  failed_count=0
+
+  while IFS= read -r pipeline_name; do
+    [ -n "$pipeline_name" ] || continue
+
+    if ! state_json="$(aws_json codepipeline get-pipeline-state --name "$pipeline_name" 2>/tmp/hol-pipeline-status.err)"; then
+      printf '%-44s %-12s %-18s %s\n' "$pipeline_name" 'Error' '-' '-'
+      cat /tmp/hol-pipeline-status.err >&2
+      failed_count=$((failed_count + 1))
+      continue
+    fi
+
+    summary="$(printf '%s' "$state_json" | pipeline_summary)"
+    status="$(printf '%s' "$summary" | cut -f1)"
+    stage="$(printf '%s' "$summary" | cut -f2)"
+    updated="$(printf '%s' "$summary" | cut -f3)"
+    updated_display="$(format_time "$updated")"
+
+    printf '%-44s %-12s %-18s %s\n' "$pipeline_name" "$status" "$stage" "$updated_display"
+
+    if [ "$status" = "Failed" ] || [ "$status" = "Error" ]; then
+      failed_count=$((failed_count + 1))
+    fi
+
+    if [ "$details" -eq 1 ]; then
+      printf '%s' "$state_json" | print_details | while IFS=$'\t' read -r detail_stage action action_status action_updated error_message; do
+        printf '  %-16s %-24s %-12s %s' "$detail_stage" "$action" "$action_status" "$(format_time "$action_updated")"
+        if [ -n "$error_message" ]; then
+          printf '  %s' "$error_message"
+        fi
+        printf '\n'
+      done
+    fi
+  done <<EOF
+$pipeline_names
+EOF
+
+  if [ "$failed_count" -gt 0 ]; then
+    return 1
+  fi
+
+  return 0
+}
+
+wait_or_quit() {
+  local remaining key
+
+  remaining="$interval"
+  while [ "$remaining" -gt 0 ]; do
+    printf '\rRefreshing in %s seconds. Press Esc or Ctrl-C to quit. ' "$remaining"
+
+    if IFS= read -rsn1 -t 1 key; then
+      if [ "$key" = $'\e' ]; then
+        printf '\n'
+        exit "$1"
+      fi
+    fi
+
+    remaining=$((remaining - 1))
+  done
+
+  printf '\n'
+}
+
+result=0
+ensure_aws_login || exit 2
+
+while true; do
+  clear
+  run_once
+  result=$?
+  printf '\n'
+  wait_or_quit "$result"
+done
